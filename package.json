@@ -1,0 +1,11 @@
+{
+    "name": "autograding-test",
+    "version": "1.0.0",
+    "scripts": {
+      "score": "npx jest --json --outputFile=results.json && node calculate-score.js"
+    },
+    "devDependencies": {
+      "jest": "^29.0.0"
+    }
+  }
+  
