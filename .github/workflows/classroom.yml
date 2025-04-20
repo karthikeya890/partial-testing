@@ -1,0 +1,44 @@
+name: Autograding Tests
+on:
+  - push
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Jest and generate results
+        run: |
+          npx jest --json --outputFile=results.json
+          PASSED=$(jq '.numPassedTests' results.json)
+          echo "PASSED=$PASSED" >> $GITHUB_ENV
+          echo "TOTAL=$(jq '.numTotalTests' results.json)" >> $GITHUB_ENV
+
+      - name: Calculate score
+        run: |
+          SCORE=$PASSED
+          echo "SCORE=$SCORE" >> $GITHUB_ENV
+
+      - name: Custom Grader Result
+        id: html-test
+        run: |
+          echo "::set-output name=result::${{ env.SCORE }}"
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        with:
+          runners: html-test
+        env:
+          HTML-TEST_RESULTS: "${{ steps.html-test.outputs.result }}"
